@@ -1,3 +1,6 @@
+import classes from './TodoList.less'
+
+
 const TodoList = () => {
     
     const todos = [
@@ -10,10 +13,10 @@ const TodoList = () => {
     ]
     
     return ( 
-        <div className="List">
+        <div className={classes.List}>
             {todos.map(item => 
                 
-                <div className="ListItem">
+                <div className={classes.ListItem}>
                     {item.id}
                     {item.header}
                     {item.description}

@@ -1,9 +1,9 @@
-import "./App.less"
+import classes from "./App.less"
 import TodoList from "./Components/TodoList";
 
 const App = () => {
   return (
-    <div className='Content'>
+    <div className={classes.Content}>
       <TodoList/>
     </div> 
    );
