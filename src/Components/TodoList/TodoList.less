@@ -1,0 +1,64 @@
+@border: 1px solid #999;
+
+.flexColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.bolder {
+    font-size: 18px;
+    font-weight: bolder;
+}
+
+.lighter {
+    font-size: 13px;
+    font-weight: lighter;
+}
+
+
+.List {
+    .flexColumn();
+    width: 60%;
+    height: 60%;
+    padding: 10px;
+    border: @border;
+    overflow-y: scroll;
+    
+    .item {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        padding: 20px;
+        border: @border;
+        background-color: white;
+
+        .left {
+            .flexColumn();
+            text-align: left
+        }
+
+        .right {
+            .flexColumn();
+            text-align: right
+        }
+
+        .header {
+            .bolder();
+        }
+
+        .description {
+            .lighter(); 
+        }
+
+        .date {
+            .bolder();
+        }
+        
+        .files {
+            .lighter();
+        }
+    } 
+}
+    
