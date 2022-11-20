@@ -1,0 +1,64 @@
+.openTodoContainer {
+    display: flex;
+    gap: 15px;
+
+    .todoInfo {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        border: 1px solid black;
+
+        .title {
+            margin-bottom: 3px;
+            font-size: large;
+        }
+
+        .info {
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .complete {
+            margin-top: 10px;
+            background-color: lightgreen;
+        }
+
+        .delete {
+            background-color: lightcoral;
+        }
+    }
+
+    .completeBorder {
+        border: 3px solid lightgreen;
+    }
+}
+
+
+
+.openTodoForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 300px;
+    
+    textarea {
+        width: 100%;
+        height: 100px;
+        margin-top: -10px;
+        resize: none;
+    }
+    
+    input[type='file'] {
+        height: 45px;
+        margin-left: -10px;
+    }
+
+    button {
+        width: 100%;
+    }
+}

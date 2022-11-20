@@ -2,25 +2,36 @@ import { useState } from 'react';
 import MyInput from '../../MyInput/MyInput';
 import MyButton from '../MyButton/MyButton';
 import classes from './CreateTodo.less'
-import dayjs from 'dayjs'
-import { collection, getFirestore, addDoc } from 'firebase/firestore';
+import { getFirestore, setDoc, doc } from 'firebase/firestore';
+import { ref, uploadBytes } from "firebase/storage";
+import { getStorage } from 'firebase/storage';
 import { APP } from '../../store';
+import { v4 as uuidv4 } from 'uuid';
 
-const db = getFirestore(APP);
-
-const pushToDB = async (data) => {
-    const col = collection(db, 'todos')
-    await addDoc(col, data)
-}
 
 const CreateTodo = ({setVisible}) => {
 
-    const [todoData, setTodoData] = useState({header: '', description: '', date: '', file: ''})
-        const submitHandler = (e) => {
+    const db = getFirestore(APP);
+    const pushToDB = async (data) => {
+    await setDoc(doc(db, "todos", `${data.date}${data.id}`), data)
+}
+    const [fileURL, setFileURL] = useState()
+    const [todoData, setTodoData] = useState({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
+        
+    const submitHandler = (e) => {
             e.preventDefault()
-            pushToDB(todoData)
+            const paths = []
+            if (fileURL) {
+                Array.from(fileURL).forEach(file => {
+                    const path = `files/${todoData.id}/${file.name}`
+                    paths.push(path)
+                    const storageRef = ref(getStorage(), path);
+                    uploadBytes(storageRef, file).then((snapshot) => {console.log('file uploaded')});
+                });
+            }
+            pushToDB({id: todoData.id, header: todoData.header, description: todoData.description, date: todoData.date, file: paths, complete: todoData.complete})
             setVisible(false)
-            setTodoData({header: '', description: '', date: '', file: ''})
+            setTodoData({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
     }
     
     const changeHandler = (e) => {
@@ -60,7 +71,8 @@ const CreateTodo = ({setVisible}) => {
                      caption={'Прикрепить файл(ы)'} 
                      type={'file'}
                      value={todoData.file}
-                     onChange={changeHandler}/>
+                     multiple={'multiple'}
+                     onChange={(e) => setFileURL(e.target.files)}/>
             <MyButton type={'submit'}>Создать</MyButton>
         </form>
      );
