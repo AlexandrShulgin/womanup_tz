@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/CreateTodo/CreateTodo.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/CreateTodo/CreateTodo.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState } from 'react';
+import MyInput from '../../MyInput/MyInput';
+import MyButton from '../MyButton/MyButton';
+import classes from './CreateTodo.less'
+import { getFirestore, setDoc, doc } from 'firebase/firestore';
+import { ref, uploadBytes } from "firebase/storage";
+import { getStorage } from 'firebase/storage';
+import { APP } from '../../store';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * @module CreateTodo
+ */
+
+/**
+ * @param {boolean} setVisible Отвечает за видимость модального окна
+ */
+const CreateTodo = ({setVisible}) => {
+
+    const db = getFirestore(APP);
+
+    /**
+     * Отправляет данные о todo в store
+     * @function pushToDB
+     * @async
+     * @param {object} data Данные о todo 
+     */
+    const pushToDB = async (data) => {
+    await setDoc(doc(db, "todos", `${data.date}${data.id}`), data)
+    }
+    
+    const [fileURL, setFileURL] = useState()
+    const [todoData, setTodoData] = useState({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
+    
+    /**
+     * Вызывается при отправке формы
+     * @function submitHandler
+     * @param {event} e  
+     */
+    const submitHandler = (e) => {
+            e.preventDefault()
+            const paths = []
+            if (fileURL) {
+                Array.from(fileURL).forEach(file => {
+                    const path = `files/${todoData.id}/${file.name}`
+                    paths.push(path)
+                    const storageRef = ref(getStorage(), path);
+                    uploadBytes(storageRef, file).then((snapshot) => {console.log('file uploaded')});
+                });
+            }
+            pushToDB({id: todoData.id, header: todoData.header, description: todoData.description, date: todoData.date, file: paths, complete: todoData.complete})
+            setVisible(false)
+            setTodoData({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
+    }
+    
+    /**
+     * Вызывается при изменении полей в инпутах
+     * Меняет состояние TodoData
+     * @function changeHandler
+     * @param {event} e 
+     */
+    const changeHandler = (e) => {
+        const { id, value } = e.target
+        setTodoData(prevState => ({
+            ...prevState,
+            [id]: value
+        }));
+    }
+
+    return ( 
+        &lt;form 
+            className={classes.createTodo}
+            onSubmit={submitHandler}>
+
+            &lt;span>Новая задача&lt;/span>
+            &lt;MyInput id={'header'}
+                     caption={'Заголовок'}
+                     value={todoData.header}
+                     onChange={changeHandler}
+                     required={'required'}/>
+            &lt;>
+            &lt;label htmlFor='description'>Описание&lt;/label>
+            &lt;textarea id={'description'}
+                      value={todoData.description}
+                      onChange={changeHandler}>
+            &lt;/textarea>
+            &lt;/>
+            &lt;MyInput id={'date'}
+                     caption={'Дата завершения'}
+                     type={'date'}
+                     value={todoData.date}
+                     onChange={changeHandler}
+                     required={'required'}/>
+
+            &lt;MyInput id={'file'} 
+                     caption={'Прикрепить файл(ы)'} 
+                     type={'file'}
+                     value={todoData.file}
+                     multiple={'multiple'}
+                     onChange={(e) => setFileURL(e.target.files)}/>
+            &lt;MyButton type={'submit'}>Создать&lt;/MyButton>
+        &lt;/form>
+     );
+}
+ 
+export default CreateTodo;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a></li><li><a href="module-CreateTodo.html">CreateTodo</a></li><li><a href="module-MyButton.html">MyButton</a></li><li><a href="module-MyInput.html">MyInput</a></li><li><a href="module-MyModal.html">MyModal</a></li><li><a href="module-OpenTodo.html">OpenTodo</a></li><li><a href="module-TodoList.html">TodoList</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 15:54:00 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

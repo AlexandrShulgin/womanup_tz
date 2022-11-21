@@ -7,7 +7,15 @@ import RelativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react';
 dayjs.extend(RelativeTime)
 
+/**
+ * @module TodoList
+ */
 
+/**
+ * Компонент отображающий все todo в бд
+ * @param {Function} openTodo Связывет todo в списке с todo в модальном окне  
+ * @returns {JSX}
+ */
 const TodoList = ({openTodo}) => {
     const db = getFirestore(APP)
     const query = collection(db, 'todos') 
@@ -18,6 +26,10 @@ const TodoList = ({openTodo}) => {
         setNow(dayjs().format('DDMMYYYY'))
     }, [])
 
+    /**
+     * @param {string} date Дата завершения задачи 
+     * @returns {int} Число, по которому определяется, истек ли срок задачи
+     */
     const timeOut = (date) => {
         const date2 = dayjs(date).format('DDMMYYYY')
         return date2 - now

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Components/OpenTodo/OpenTodo.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Components/OpenTodo/OpenTodo.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useEffect, useState } from 'react';
+import MyInput from '../../MyInput/MyInput';
+import MyButton from '../MyButton/MyButton';
+import classes from './OpenTodo.less'
+import { getFirestore, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { APP } from '../../store';
+import dayjs from 'dayjs'
+import { getDownloadURL, getStorage, ref } from 'firebase/storage';
+
+/**
+ * @module OpenTodo
+ */
+
+/**
+ * Компонент отвечающий за просмотр и изменение данных о todo
+ * @param {Function} setVisible см.MyModal
+ * @param {object} currentTodoData Данные о todo, передаваемые в компонент, для отображения в модальном окне 
+ * @returns {JSX}
+ */
+const OpenTodo = ({setVisible, currentTodoData}) => {
+    
+    const db = getFirestore(APP);
+
+    /**
+     * Отправляет данные о todo в store
+     * @function pushToDB
+     * @async
+     * @param {object} data Данные о todo 
+     */
+    const pushToDB = async (data) => {
+        await setDoc(doc(db, "todos", `${data.date}${data.id}`), data)
+    }
+
+    useEffect(() => {
+        setTodoData({id: currentTodoData.id,
+                    header: currentTodoData.header, 
+                    description: currentTodoData.description, 
+                    date: currentTodoData.date, 
+                    file: currentTodoData.file,
+                    complete: currentTodoData.complete})
+
+    },[currentTodoData])
+
+    
+    const [todoData, setTodoData] = useState({id: currentTodoData.id,
+                                              header: currentTodoData.header, 
+                                              description: currentTodoData.description, 
+                                              date: currentTodoData.date, 
+                                              file: currentTodoData.file,
+                                              complete: currentTodoData.complete})
+    
+    /**
+     * Вызывается при отправке формы
+     * @function submitHandler
+     * @param {event} e  
+     */
+    const submitHandler = (e) => {
+        e.preventDefault()
+        pushToDB(todoData)
+        setVisible(false)
+        setTodoData({id: currentTodoData.id,
+                     header: currentTodoData.header, 
+                     description: currentTodoData.description, 
+                     date: currentTodoData.date, 
+                     file: currentTodoData.file,
+                     complete: currentTodoData.complete})
+    }
+    
+
+    
+    
+    /**
+     * Вызывается при изменении полей в инпутах
+     * Меняет состояние TodoData
+     * @function changeHandler
+     * @param {event} e 
+     */
+    const changeHandler = (e) => {
+        const { id, value } = e.target
+        setTodoData(prevState => ({
+            ...prevState,
+            [id]: value
+        }));
+    }
+
+    /**
+     * При нажатии на кнопку "Выполнить", меняет состояние и отправляет данные о выполнении в бд
+     * @function completeHandler
+     */
+    const completeHandler = () => {
+        setTodoData(prevState => ({
+            ...prevState,
+            complete: "Выполнено" 
+        }))
+        pushToDB(todoData)
+    }
+
+    /**
+     * При нажатии на кнопку "Удалить", удаляет данные о todo из бд
+     * @function deleteHandler
+     * @async
+     */
+    const deleteHandler = async () => {
+        await deleteDoc(doc(db, "todos", `${todoData.date}${todoData.id}`));
+        setVisible(false)
+    }
+
+
+    const storage = getStorage(APP);
+    todoData.file.map(item => {
+        getDownloadURL(ref(storage, item)).then((res) => document.getElementById(item).setAttribute('href', res))
+    })
+    
+    return (
+        &lt;div className={classes.openTodoContainer}>
+            &lt;div className={`${classes.todoInfo} ${todoData.complete === 'Выполнено' ?  classes.completeBorder : null}`}>
+                &lt;span className={classes.title}>Заголовок задачи:&lt;/span>
+                &lt;span className={classes.info}>{todoData.header}&lt;/span>
+                &lt;span className={classes.title}>Описание задачи:&lt;/span>
+                &lt;span className={classes.info}>{todoData.description}&lt;/span>
+                &lt;span className={classes.title}>Дата завершения задачи:&lt;/span>
+                &lt;span className={classes.info}>{dayjs(todoData.date).format('DD-MM-YYYY')}&lt;/span>
+                &lt;span className={classes.title}>Прикрепленные файлы:&lt;/span>
+                &lt;div className={classes.links}>
+                    {!todoData.file[0] ? &lt;div className={classes.info}>Файлов нет&lt;/div> : null}
+                    {todoData.file.map((item, index) => &lt;a className={classes.info} id={item} key={item} target={'_blank'} rel={'noreferrer'} href={''}>Файл{index+1}&lt;/a>)} 
+                &lt;/div>
+                &lt;span>Двойной клик, чтобы выполнить&lt;/span>
+                &lt;MyButton className={classes.complete}
+                          onClick={completeHandler}>
+                    Задача выполнена
+                &lt;/MyButton>
+                &lt;MyButton className={classes.delete}
+                          onClick={deleteHandler}>
+                    Удалить задачу
+                &lt;/MyButton>
+
+            &lt;/div>
+            &lt;form 
+                className={classes.openTodoForm}
+                onSubmit={submitHandler}>
+
+                &lt;span>Изменить задачу&lt;/span>
+                &lt;MyInput id={'header'}
+                        caption={'Заголовок'}
+                        value={todoData.header}
+                        onChange={changeHandler}
+                        required={'required'}/>
+                &lt;>
+                &lt;label htmlFor='description'>Описание&lt;/label>
+                &lt;textarea id={'description'}
+                        value={todoData.description}
+                        onChange={changeHandler}>
+                &lt;/textarea>
+                &lt;/>
+                &lt;MyInput id={'date'}
+                        caption={'Дата завершения'}
+                        type={'date'}
+                        value={todoData.date}
+                        onChange={changeHandler}
+                        required={'required'}/>
+
+                
+                &lt;MyButton type={'submit'}>Изменить&lt;/MyButton>
+            &lt;/form>
+        &lt;/div>
+     );
+}
+ 
+export default OpenTodo;
+
+//Кнопка выполнить
+//Кнопка удалить
+//Отметки, если выполнено, просрочено.</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-App.html">App</a></li><li><a href="module-CreateTodo.html">CreateTodo</a></li><li><a href="module-MyButton.html">MyButton</a></li><li><a href="module-MyInput.html">MyInput</a></li><li><a href="module-MyModal.html">MyModal</a></li><li><a href="module-OpenTodo.html">OpenTodo</a></li><li><a href="module-TodoList.html">TodoList</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.0</a> on Mon Nov 21 2022 15:54:00 GMT+0300 (Москва, стандартное время)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

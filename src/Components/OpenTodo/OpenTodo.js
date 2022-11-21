@@ -7,11 +7,26 @@ import { APP } from '../../store';
 import dayjs from 'dayjs'
 import { getDownloadURL, getStorage, ref } from 'firebase/storage';
 
+/**
+ * @module OpenTodo
+ */
 
+/**
+ * Компонент отвечающий за просмотр и изменение данных о todo
+ * @param {Function} setVisible см.MyModal
+ * @param {object} currentTodoData Данные о todo, передаваемые в компонент, для отображения в модальном окне 
+ * @returns {JSX}
+ */
 const OpenTodo = ({setVisible, currentTodoData}) => {
     
     const db = getFirestore(APP);
 
+    /**
+     * Отправляет данные о todo в store
+     * @function pushToDB
+     * @async
+     * @param {object} data Данные о todo 
+     */
     const pushToDB = async (data) => {
         await setDoc(doc(db, "todos", `${data.date}${data.id}`), data)
     }
@@ -34,7 +49,11 @@ const OpenTodo = ({setVisible, currentTodoData}) => {
                                               file: currentTodoData.file,
                                               complete: currentTodoData.complete})
     
-    
+    /**
+     * Вызывается при отправке формы
+     * @function submitHandler
+     * @param {event} e  
+     */
     const submitHandler = (e) => {
         e.preventDefault()
         pushToDB(todoData)
@@ -50,7 +69,12 @@ const OpenTodo = ({setVisible, currentTodoData}) => {
 
     
     
-
+    /**
+     * Вызывается при изменении полей в инпутах
+     * Меняет состояние TodoData
+     * @function changeHandler
+     * @param {event} e 
+     */
     const changeHandler = (e) => {
         const { id, value } = e.target
         setTodoData(prevState => ({
@@ -59,6 +83,10 @@ const OpenTodo = ({setVisible, currentTodoData}) => {
         }));
     }
 
+    /**
+     * При нажатии на кнопку "Выполнить", меняет состояние и отправляет данные о выполнении в бд
+     * @function completeHandler
+     */
     const completeHandler = () => {
         setTodoData(prevState => ({
             ...prevState,
@@ -67,7 +95,11 @@ const OpenTodo = ({setVisible, currentTodoData}) => {
         pushToDB(todoData)
     }
 
-
+    /**
+     * При нажатии на кнопку "Удалить", удаляет данные о todo из бд
+     * @function deleteHandler
+     * @async
+     */
     const deleteHandler = async () => {
         await deleteDoc(doc(db, "todos", `${todoData.date}${todoData.id}`));
         setVisible(false)

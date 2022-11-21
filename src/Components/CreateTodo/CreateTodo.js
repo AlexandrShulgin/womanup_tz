@@ -8,16 +8,35 @@ import { getStorage } from 'firebase/storage';
 import { APP } from '../../store';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * @module CreateTodo
+ */
 
+/**
+ * @param {boolean} setVisible Отвечает за видимость модального окна
+ */
 const CreateTodo = ({setVisible}) => {
 
     const db = getFirestore(APP);
+
+    /**
+     * Отправляет данные о todo в store
+     * @function pushToDB
+     * @async
+     * @param {object} data Данные о todo 
+     */
     const pushToDB = async (data) => {
     await setDoc(doc(db, "todos", `${data.date}${data.id}`), data)
-}
+    }
+    
     const [fileURL, setFileURL] = useState()
     const [todoData, setTodoData] = useState({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
-        
+    
+    /**
+     * Вызывается при отправке формы
+     * @function submitHandler
+     * @param {event} e  
+     */
     const submitHandler = (e) => {
             e.preventDefault()
             const paths = []
@@ -34,6 +53,12 @@ const CreateTodo = ({setVisible}) => {
             setTodoData({id: uuidv4(), header: '', description: '', date: '', complete: 'Не выполнено'})
     }
     
+    /**
+     * Вызывается при изменении полей в инпутах
+     * Меняет состояние TodoData
+     * @function changeHandler
+     * @param {event} e 
+     */
     const changeHandler = (e) => {
         const { id, value } = e.target
         setTodoData(prevState => ({
